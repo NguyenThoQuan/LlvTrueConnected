@@ -1,0 +1,59 @@
+@media (min-width: 1200px) {
+  .col-lg-2-4 {
+    width: 20%;
+  }
+}
+.d-flex {
+  display: flex;
+  align-items: center;
+}
+.align-items-center {
+  align-items: center;
+}
+
+.e-grid .e-focused:not(.e-menu-item):not(.e-editedbatchcell) {
+  box-shadow: none;
+}
+
+.mantine-Modal-header {
+  background-color: #0c68b4 !important;
+  color: #fff !important;
+}
+
+.mantine-Modal-header svg {
+  color: #fff !important;
+}
+
+.ag-theme-quartz .ag-header-cell {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+.ag-theme-quartz .ag-header-group-cell {
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+.ag-header-cell-comp-wrapper {
+  display: block !important;
+}
+.ag-header-group-cell-label,
+.ag-header-cell-label {
+  display: block !important;
+}
+::-webkit-scrollbar {
+  width: 5px;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
