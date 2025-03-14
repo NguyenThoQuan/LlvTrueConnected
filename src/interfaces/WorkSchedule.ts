@@ -1,9 +1,12 @@
 export interface WorkSchedules {
+  id: string;
   idUser: string | null;
   month: string | null;
+  monthD: string | null;
   createDate: string | null;
   workSchedule: WorkScheduleDetail[] | null;
-  approve: boolean;
+  approve: boolean | null;
+  isEdit: boolean;
 }
 
 export interface WorkScheduleDetail {

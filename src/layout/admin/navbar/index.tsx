@@ -63,26 +63,26 @@ export function NavbarNested({ currentState, toggleState }: NavbarNestedProps) {
         <Menu trigger="hover" openDelay={100} closeDelay={400} position="right">
           <Menu.Target>
             <Avatar
-              key={JSON.parse(localStorage.getItem("user") ?? "").fullName}
-              name={JSON.parse(localStorage.getItem("user") ?? "").fullName}
+              // key={JSON?.parse(localStorage.getItem("user") ?? "")?.fullName}
+              // name={JSON?.parse(localStorage.getItem("user") ?? "")?.fullName}
               color="initials"
               radius="xl"
             >
-              {JSON.parse(localStorage.getItem("user") ?? "")
-                .fullName?.toString()
+              {/* {JSON.parse(localStorage.getItem("user") ?? "")
+                ?.fullName?.toString()
                 .slice(0, 2)
-                .toUpperCase()}
+                .toUpperCase()} */}
             </Avatar>
           </Menu.Target>
           <Menu.Dropdown>
             <Menu.Item leftSection={<IconUser size={14} color="#228BE6" />}>
               <Text fw={500} size="12.5px" c="#228BE6">
-                {JSON.parse(localStorage.getItem("user") ?? "").fullName}
+                {/* {JSON.parse(localStorage.getItem("user") ?? "").fullName} */}
               </Text>
             </Menu.Item>
             <Menu.Item leftSection={<IconMail size={14} color="#228BE6" />}>
               <Text fw={500} size="12.5px" c="#228BE6">
-                {JSON.parse(localStorage.getItem("user") ?? "").userName}
+                {/* {JSON.parse(localStorage.getItem("user") ?? "").userName} */}
               </Text>
             </Menu.Item>
           </Menu.Dropdown>

@@ -18,7 +18,10 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconCheck,
+  IconClockEdit,
   IconEdit,
+  IconLoader,
+  IconPencilShare,
   IconRepeat,
   IconUser,
   IconX,
@@ -31,11 +34,14 @@ import { notifications } from "@mantine/notifications";
 
 const WorkSchedule = () => {
   const entity = {
+    id: Math.floor(Math.random() * 100000).toString(),
     idUser: "1",
     month: new Date()?.toISOString(),
+    monthD: (new Date()?.getMonth() + 1)?.toString(),
     createDate: null,
     workSchedule: null,
-    approve: false,
+    approve: null,
+    isEdit: false,
   };
 
   const [visible, { toggle, close, open }] = useDisclosure(false);
@@ -109,7 +115,14 @@ const WorkSchedule = () => {
   const changeMonth = (value: any) => {
     form.setValues((prev) => ({
       ...prev,
-      month: value ? new Date(value ?? "")?.toISOString() : null,
+      month: value
+        ? new Date(
+            new Date(value ?? "").setHours(new Date(value ?? "").getHours() + 7)
+          )?.toISOString()
+        : null,
+      monthD: value
+        ? (new Date(value ?? "")?.getMonth() + 1)?.toString()
+        : null,
     }));
     setWeekdays(
       getWeekdaysInMonth(
@@ -175,14 +188,7 @@ const WorkSchedule = () => {
             {new Date(form.getValues()?.month ?? "")?.getMonth() + 1}, bạn có
             muốn lưu nó ?
           </Text>
-          <Flex justify={"end"} mt={15} gap={"md"}>
-            <Button
-              leftSection={<IconX size={14} />}
-              onClick={() => modals.closeAll()}
-              color="red"
-            >
-              Hủy
-            </Button>
+          <Flex justify={"end"} mt={15}>
             <Button
               leftSection={<IconCheck size={14} />}
               color="green"
@@ -203,12 +209,68 @@ const WorkSchedule = () => {
     });
   };
 
+  const modalRequestEdit = () => {
+    modals.openConfirmModal({
+      title: <Title order={5}>Yêu cầu chỉnh sửa lịch làm việc !</Title>,
+      size: "auto",
+      children: (
+        <Box mb={-20}>
+          <Text fw={500} size="18px" mt={15}>
+            Xác nhận gửi yêu cầu chỉnh sửa lịch làm việc tháng{" "}
+            {form.getValues()?.monthD} !
+          </Text>
+          <Flex justify={"end"} mt={15} gap={"md"}>
+            <Button
+              leftSection={<IconCheck size={14} />}
+              color="green"
+              onClick={() => {
+                handleRequestEdit();
+              }}
+            >
+              Xác nhận
+            </Button>
+          </Flex>
+        </Box>
+      ),
+      confirmProps: { display: "none" },
+      cancelProps: { display: "none" },
+    });
+  };
+
+  const getDetailData = async () => {
+    open();
+    const getDetail = axios.get(
+      `http://localhost:3000/workSchedule?idUser=1&monthD=${
+        form.getValues()?.monthD
+      }`
+    );
+
+    const dataApi = await getDetail;
+    if (dataApi && dataApi?.data?.length > 0) {
+      const result = dataApi?.data;
+      setWorkSchedule(result[0]?.workSchedule);
+      form.setValues(result[0]);
+    } else {
+      setWorkSchedule([]);
+      form.setValues((prev) => ({
+        ...prev,
+        id: Math.floor(Math.random() * 100000).toString(),
+        idUser: "1",
+        createDate: null,
+        workSchedule: null,
+        approve: null,
+        isEdit: false,
+      }));
+    }
+  };
+
   const createData = async (dataSubmit: WorkSchedules) => {
     open();
     const createUser = axios.post("http://localhost:3000/workSchedule", {
       ...dataSubmit,
       createDate: new Date().toISOString(),
       workSchedule: workSchedule,
+      approve: 2,
     });
     const dataApi = await createUser;
     if (dataApi) {
@@ -221,10 +283,35 @@ const WorkSchedule = () => {
     close();
   };
 
+  const handleRequestEdit = async () => {
+    open();
+    const requestEdit = axios.patch(
+      `http://localhost:3000/workSchedule/${form.getValues()?.id}`,
+      {
+        isEdit: true,
+      }
+    );
+    const dataApi = await requestEdit;
+    if (dataApi) {
+      notifications.show({
+        color: "green",
+        message:
+          "Gửi yêu cầu chỉnh sửa lịch làm việc thành công, vui lòng chờ quản lý phê duyệt !",
+      });
+      getDetailData();
+      modals.closeAll();
+    }
+    close();
+  };
+
   useEffect(() => {
     const today = new Date();
     setWeekdays(getWeekdaysInMonth(today.getFullYear(), today.getMonth()));
   }, []);
+
+  useEffect(() => {
+    getDetailData();
+  }, [form.getValues()?.monthD]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -263,7 +350,10 @@ const WorkSchedule = () => {
                       : null
                   }
                   onChange={(e) => {
-                    if (workSchedule.length > 0) {
+                    if (
+                      workSchedule.length > 0 &&
+                      form.getValues()?.approve !== false
+                    ) {
                       modalConfirm(e);
                     } else {
                       changeMonth(e);
@@ -323,6 +413,7 @@ const WorkSchedule = () => {
                     ) : (
                       <Checkbox
                         checked={workSchedule?.some((i) => i.workday === item)}
+                        disabled={form.getValues()?.approve !== null}
                         onClick={() =>
                           setWorkSchedule((prev) =>
                             prev.some((i) => i.workday === item)
@@ -369,6 +460,7 @@ const WorkSchedule = () => {
                                   item
                                 )
                               }
+                              readOnly={form.getValues()?.approve !== null}
                             />
                           </Flex>
                         ))}
@@ -376,6 +468,7 @@ const WorkSchedule = () => {
                         leftSection={<IconEdit size={14} />}
                         size="xs"
                         w={"70%"}
+                        disabled={form.getValues()?.approve !== null}
                         onClick={() =>
                           modalNoteWorkDay(
                             workSchedule?.filter(
@@ -403,16 +496,87 @@ const WorkSchedule = () => {
           ))}
         </Table.Tbody>
       </Table>
-      <Button
-        pos={isFixed ? "fixed" : "static"}
-        leftSection={<IconCheck size={18} />}
-        style={{ bottom: 10, right: 10 }}
-        variant="filled"
-        color="green"
-        onClick={() => createData(form.getValues())}
-      >
-        Lưu lịch làm việc
-      </Button>
+      {form.getValues()?.approve === null ? (
+        <Button
+          pos={isFixed ? "fixed" : "static"}
+          leftSection={<IconCheck size={18} />}
+          style={{ bottom: 10, right: 10 }}
+          variant="filled"
+          color="green"
+          onClick={() => createData(form.getValues())}
+          disabled={workSchedule.length === 0}
+        >
+          Lưu lịch làm việc
+        </Button>
+      ) : form.getValues()?.approve === false ? (
+        <Flex
+          pos={"fixed"}
+          justify={"end"}
+          gap={"md"}
+          style={{ bottom: 10, right: 10 }}
+        >
+          {form.getValues()?.isEdit === false ? (
+            <Button
+              leftSection={<IconPencilShare size={18} />}
+              variant="filled"
+              color="#228BE6"
+              onClick={() => modalRequestEdit()}
+            >
+              Yêu cầu chỉnh sửa
+            </Button>
+          ) : (
+            <Button
+              leftSection={<IconLoader size={18} />}
+              variant="filled"
+              color="yellow"
+            >
+              Đã gửi yêu cầu chỉnh sửa vui lòng chờ quản lý phê duyệt !
+            </Button>
+          )}
+          <Button
+            leftSection={<IconClockEdit size={18} />}
+            variant="filled"
+            color="yellow"
+            style={{ cursor: "none" }}
+          >
+            Vui lòng chờ quản lý phê duyệt lịch làm việc !
+          </Button>
+        </Flex>
+      ) : (
+        <Flex
+          pos={"fixed"}
+          justify={"end"}
+          gap={"md"}
+          style={{ bottom: 10, right: 10 }}
+        >
+          {form.getValues()?.isEdit === false ? (
+            <Button
+              leftSection={<IconPencilShare size={18} />}
+              variant="filled"
+              color="#228BE6"
+              onClick={() => modalRequestEdit()}
+            >
+              Yêu cầu chỉnh sửa
+            </Button>
+          ) : (
+            <Button
+              leftSection={<IconLoader size={18} />}
+              variant="filled"
+              color="yellow"
+            >
+              Đã gửi yêu cầu chỉnh sửa vui lòng chờ quản lý phê duyệt !
+            </Button>
+          )}
+          <Button
+            leftSection={<IconCheck size={18} />}
+            variant="filled"
+            color="green"
+            style={{ cursor: "none" }}
+          >
+            Lịch làm việc đã được duyệt !
+          </Button>
+        </Flex>
+      )}
     </>
   );
 };
