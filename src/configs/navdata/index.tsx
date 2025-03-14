@@ -18,7 +18,7 @@ export const router = [
     icon: IconUserCog,
     initiallyOpened: true,
     links: [
-      { label: "Chức danh", link: "/role" },
+      { label: "Quản lý lịch làm việc", link: "/role" },
       { label: "Nhân viên", link: "/users" },
     ],
   },

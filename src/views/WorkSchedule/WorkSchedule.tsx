@@ -24,7 +24,6 @@ import {
   IconPencilShare,
   IconRepeat,
   IconUser,
-  IconX,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { modals } from "@mantine/modals";
@@ -36,6 +35,7 @@ const WorkSchedule = () => {
   const entity = {
     id: Math.floor(Math.random() * 100000).toString(),
     idUser: "1",
+    nameUser: "Nguyễn Thọ Quân",
     month: new Date()?.toISOString(),
     monthD: (new Date()?.getMonth() + 1)?.toString(),
     createDate: null,
@@ -256,6 +256,7 @@ const WorkSchedule = () => {
         ...prev,
         id: Math.floor(Math.random() * 100000).toString(),
         idUser: "1",
+        nameUser: "Nguyễn Thọ Quân",
         createDate: null,
         workSchedule: null,
         approve: null,
