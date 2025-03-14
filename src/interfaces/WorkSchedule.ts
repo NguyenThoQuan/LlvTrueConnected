@@ -5,7 +5,7 @@ export interface WorkSchedules {
   monthD: string | null;
   createDate: string | null;
   workSchedule: WorkScheduleDetail[] | null;
-  approve: boolean | null;
+  approve: string;
   isEdit: boolean;
 }
 

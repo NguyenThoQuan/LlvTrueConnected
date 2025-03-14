@@ -8,14 +8,20 @@ import {
   TextInput,
   Text,
   ActionIcon,
+  Tooltip,
+  Title,
+  Box,
 } from "@mantine/core";
 import {
   IconCaretDown,
+  IconCheck,
+  IconChecklist,
   IconDownload,
-  IconEdit,
+  IconEye,
+  IconPencilCheck,
   IconPlus,
   IconSearch,
-  IconTrash,
+  IconX,
 } from "@tabler/icons-react";
 import {
   MantineReactTable,
@@ -28,6 +34,8 @@ import React, { useEffect, useState } from "react";
 import { paginationBase } from "../../../interfaces/PaginationResponseBase";
 import axios from "axios";
 import { formatDateTime } from "../../../helpers/FunctionHelper";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 
 const WorkScheduleManagement = () => {
   //data and fetching state
@@ -73,21 +81,88 @@ const WorkScheduleManagement = () => {
         ),
       },
       {
+        accessorKey: "approve",
+        header: "Trạng thái",
+        Cell: ({ row, renderedCellValue }) => (
+          <Badge
+            color={
+              row.original.isEdit !== true
+                ? renderedCellValue === "2"
+                  ? "green"
+                  : "yellow"
+                : "orange"
+            }
+          >
+            {row.original.isEdit !== true
+              ? renderedCellValue === "2"
+                ? "Đã duyệt"
+                : "Chờ duyệt"
+              : "Yêu cầu chỉnh sửa"}
+          </Badge>
+        ),
+      },
+      {
         accessorKey: "action",
         header: "Thao tác",
         Cell: ({ row }) => (
           <Flex justify={"start"} gap={5}>
-            <ActionIcon variant="light" color="yellow">
-              <IconEdit size={20} />
-            </ActionIcon>
-            <ActionIcon variant="light" color="red">
-              <IconTrash size={20} />
-            </ActionIcon>
+            <Tooltip label="Xem chi tiết">
+              <ActionIcon variant="light" color="blue">
+                <IconEye size={20} />
+              </ActionIcon>
+            </Tooltip>
+            {row.original.isEdit === true ? (
+              <Tooltip label="Duyệt yêu cầu chỉnh sửa">
+                <Menu>
+                  <Menu.Target>
+                    <ActionIcon variant="light" color="yellow">
+                      <IconPencilCheck size={20} />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={<IconCheck size={14} />}
+                      onClick={() =>
+                        modalConfirmRequestEdit(
+                          true,
+                          row.original.approve,
+                          row.original.id
+                        )
+                      }
+                    >
+                      Duyệt yêu cầu
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconX size={14} />}
+                      onClick={() =>
+                        modalConfirmRequestEdit(
+                          false,
+                          row.original.approve,
+                          row.original.id
+                        )
+                      }
+                    >
+                      Từ chối yêu cầu
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Tooltip>
+            ) : row.original.approve !== "2" &&
+              row.original.isEdit === false ? (
+              <Tooltip label="Duyệt lịch làm việc">
+                <ActionIcon variant="light" color="green">
+                  <IconChecklist size={20} />
+                </ActionIcon>
+              </Tooltip>
+            ) : (
+              <></>
+            )}
           </Flex>
         ),
         enableColumnActions: false,
         enableSorting: false,
         enableColumnFilter: false,
+        size: 10,
       },
     ],
     []
@@ -97,7 +172,7 @@ const WorkScheduleManagement = () => {
     const getData = axios.get(
       `http://localhost:3000/workSchedule?_start=0&_end=20&monthD=${
         new Date().getMonth() + 1
-      }`
+      }&approve_ne=0`
     );
 
     try {
@@ -116,6 +191,64 @@ const WorkScheduleManagement = () => {
     } catch (error) {
       console.error("Error fetching:", error);
     }
+  };
+
+  const handleRequestEdit = async (
+    confirm: boolean,
+    approve: boolean,
+    id: any
+  ) => {
+    open();
+    const requestEdit = axios.patch(
+      `http://localhost:3000/workSchedule/${id}`,
+      {
+        approve: confirm === true ? "0" : approve,
+        isEdit: false,
+      }
+    );
+    const dataApi = await requestEdit;
+    if (dataApi) {
+      notifications.show({
+        color: "green",
+        message: "Xác nhận yêu cầu chỉnh sửa !",
+      });
+      fetchData();
+      modals.closeAll();
+    }
+    close();
+  };
+
+  const modalConfirmRequestEdit = (
+    confirm: boolean,
+    approve: boolean,
+    id: any
+  ) => {
+    modals.openConfirmModal({
+      title: <Title order={5}>Duyệt yêu cầu chỉnh sửa lịch làm việc !!!</Title>,
+      size: "auto",
+      children: (
+        <Box mb={-20}>
+          <Text fw={500} size="18px" mt={15}>
+            Xác nhận {confirm === true ? "duyệt" : "từ chối"} yêu cầu chỉnh sửa
+            ?
+          </Text>
+          <Flex justify={"end"} mt={15}>
+            <Button
+              leftSection={<IconCheck size={14} />}
+              color="green"
+              onClick={() => {
+                handleRequestEdit(confirm, approve, id);
+                modals.closeAll();
+              }}
+            >
+              Xác nhận
+            </Button>
+          </Flex>
+        </Box>
+      ),
+      confirmProps: { display: "none" },
+      cancelProps: { display: "none" },
+    });
   };
 
   useEffect(() => {
@@ -194,9 +327,6 @@ const WorkScheduleManagement = () => {
     getRowId: (row) => row.id?.toString(),
     initialState: {
       showColumnFilters: false,
-      columnPinning: {
-        right: ["action"],
-      },
       columnVisibility: { id: false },
       density: "xs",
     },

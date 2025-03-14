@@ -40,7 +40,7 @@ const WorkSchedule = () => {
     monthD: (new Date()?.getMonth() + 1)?.toString(),
     createDate: null,
     workSchedule: null,
-    approve: null,
+    approve: "0",
     isEdit: false,
   };
 
@@ -259,7 +259,7 @@ const WorkSchedule = () => {
         nameUser: "Nguyễn Thọ Quân",
         createDate: null,
         workSchedule: null,
-        approve: null,
+        approve: "0",
         isEdit: false,
       }));
     }
@@ -271,7 +271,7 @@ const WorkSchedule = () => {
       ...dataSubmit,
       createDate: new Date().toISOString(),
       workSchedule: workSchedule,
-      approve: 2,
+      approve: "1",
     });
     const dataApi = await createUser;
     if (dataApi) {
@@ -279,6 +279,7 @@ const WorkSchedule = () => {
         color: "green",
         message: "Đã lưu lịch làm việc, vui lòng chờ quản lý xét duyệt !",
       });
+      getDetailData();
       modals.closeAll();
     }
     close();
@@ -353,7 +354,7 @@ const WorkSchedule = () => {
                   onChange={(e) => {
                     if (
                       workSchedule.length > 0 &&
-                      form.getValues()?.approve !== false
+                      form.getValues()?.approve !== "0"
                     ) {
                       modalConfirm(e);
                     } else {
@@ -414,7 +415,7 @@ const WorkSchedule = () => {
                     ) : (
                       <Checkbox
                         checked={workSchedule?.some((i) => i.workday === item)}
-                        disabled={form.getValues()?.approve !== null}
+                        disabled={form.getValues()?.approve !== "0"}
                         onClick={() =>
                           setWorkSchedule((prev) =>
                             prev.some((i) => i.workday === item)
@@ -461,7 +462,7 @@ const WorkSchedule = () => {
                                   item
                                 )
                               }
-                              readOnly={form.getValues()?.approve !== null}
+                              readOnly={form.getValues()?.approve !== "0"}
                             />
                           </Flex>
                         ))}
@@ -469,7 +470,7 @@ const WorkSchedule = () => {
                         leftSection={<IconEdit size={14} />}
                         size="xs"
                         w={"70%"}
-                        disabled={form.getValues()?.approve !== null}
+                        disabled={form.getValues()?.approve !== "0"}
                         onClick={() =>
                           modalNoteWorkDay(
                             workSchedule?.filter(
@@ -497,7 +498,7 @@ const WorkSchedule = () => {
           ))}
         </Table.Tbody>
       </Table>
-      {form.getValues()?.approve === null ? (
+      {form.getValues()?.approve === "0" ? (
         <Button
           pos={isFixed ? "fixed" : "static"}
           leftSection={<IconCheck size={18} />}
@@ -509,7 +510,7 @@ const WorkSchedule = () => {
         >
           Lưu lịch làm việc
         </Button>
-      ) : form.getValues()?.approve === false ? (
+      ) : form.getValues()?.approve === "1" ? (
         <Flex
           pos={"fixed"}
           justify={"end"}
